@@ -1,232 +1,524 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Taxi & Bus Calculator (Google Maps)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Taxi & Bus Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#020617" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
   <style>
     * { box-sizing: border-box; }
+
     body {
-      font-family: system-ui, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1d283a 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
     }
-    .app { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .logo-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: #eab308;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111827;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 0 24px rgba(234, 179, 8, 0.6);
+    }
+
+    .app-title {
+      margin-left: 10px;
+    }
+
+    .app-title h1 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .app-title p {
+      margin: 0;
+      margin-top: 2px;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1f2937;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
     .card {
-      background: #ffffff;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
       padding: 14px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      margin-bottom: 14px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
     }
-    input {
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    input[type="text"] {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
+      padding: 11px 12px 11px 34px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.95rem;
+      outline: none;
     }
+
+    input[type="text"]::placeholder {
+      color: #6b7280;
+    }
+
     button {
       width: 100%;
-      padding: 12px;
-      background: #111827;
-      color: white;
-      border: none;
+      padding: 11px;
       border-radius: 999px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
     }
-    .small-btn {
-      background: #e5e7eb;
-      color: #111;
-      font-size: 0.9rem;
+
+    button:active {
+      transform: scale(0.97);
     }
-    #map {
-      width: 100%;
-      height: 280px;
-      border-radius: 12px;
-      margin-top: 10px;
+
+    .btn-primary {
+      background: linear-gradient(135deg, #facc15, #eab308);
+      color: #111827;
+      box-shadow: 0 10px 20px rgba(250, 204, 21, 0.45);
     }
+
+    .btn-ghost {
+      background: transparent;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      box-shadow: none;
+      font-size: 0.8rem;
+      padding: 7px 10px;
+      width: auto;
+      margin-top: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .secondary-text {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .error {
+      color: #fca5a5;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .results-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
     .result-line {
       display: flex;
       justify-content: space-between;
       margin: 4px 0;
+      font-size: 0.9rem;
     }
-    .error { color: red; }
+
+    .label-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid #374151;
+      color: #9ca3af;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #1f2937;
+      margin: 8px 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 260px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 360px) {
+      .card { padding: 12px; }
+      #map { height: 220px; }
+    }
   </style>
 </head>
 
 <body>
 <div class="app">
 
-  <h2 style="text-align:center;">Taxi & Bus Calculator</h2>
+  <header class="app-header">
+    <div style="display:flex; align-items:center;">
+      <div class="logo-circle">T</div>
+      <div class="app-title">
+        <h1>TaxiCalc</h1>
+        <p>GPS · start & eindadres</p>
+      </div>
+    </div>
+    <span class="badge">
+      <span style="width:7px;height:7px;border-radius:999px;background:#22c55e;"></span>
+      Live · Google Maps
+    </span>
+  </header>
 
-  <div class="card">
-    <label>Beginadres</label>
-    <input id="startAddress" type="text" placeholder="Bijv. Naaldwijk, De Bruidsbogerd 11">
-    <button class="small-btn" id="gpsBtn">Gebruik GPS als startadres</button>
+  <!-- Invoer -->
+  <section class="card">
+    <label for="startAddress">Startadres</label>
+    <div class="input-group">
+      <span class="input-prefix">A</span>
+      <input
+        id="startAddress"
+        type="text"
+        placeholder="Bijv. De Bruidsbogerd 11, Naaldwijk"
+        autocomplete="off"
+      />
+    </div>
+    <div class="btn-row">
+      <button type="button" id="useGpsBtn" class="btn-ghost">Gebruik GPS als startpunt</button>
+    </div>
+    <p id="startInfo" class="secondary-text">Startpunt: handmatig adres.</p>
 
-    <label style="margin-top:10px;">Eindadres</label>
-    <input id="endAddress" type="text" placeholder="Bijv. Poeldijk, Sint Bartholomeusstraat">
+    <label for="endAddress" style="margin-top:10px;">Eindadres</label>
+    <div class="input-group">
+      <span class="input-prefix">B</span>
+      <input
+        id="endAddress"
+        type="text"
+        placeholder="Bijv. Sint Bartholomeusstraat, Poeldijk"
+        autocomplete="off"
+      />
+    </div>
 
-    <button id="calcBtn">Bereken automatisch</button>
-    <p id="status"></p>
+    <button id="calcBtn" class="btn-primary">Bereken rit automatisch</button>
+    <p id="status" class="secondary-text"></p>
     <p id="error" class="error"></p>
-  </div>
+    <p class="secondary-text">
+      Startadres en eindadres kun je handmatig invoeren, of GPS gebruiken als startpunt.
+    </p>
+  </section>
 
-  <div class="card">
-    <h3>Resultaten</h3>
+  <!-- Resultaten -->
+  <section class="card">
+    <div class="results-header">
+      <h3>Resultaten</h3>
+      <span class="label-pill">Live berekend</span>
+    </div>
 
     <div class="result-line">
-      <span>Afstand:</span>
+      <span>Afstand</span>
       <span id="distanceText">-</span>
     </div>
 
     <div class="result-line">
-      <span>Reistijd:</span>
+      <span>Reistijd</span>
       <span id="durationText">-</span>
     </div>
 
     <hr>
 
-    <div class="result-line">
-      <span>Taxi (1–4 p.):</span>
+    <div class="result-line" style="margin-top:6px;">
+      <span>Taxi (1–4 pers.)</span>
       <span id="taxiTotal">-</span>
     </div>
-    <p id="taxiBreakdown"></p>
+    <p id="taxiBreakdown" class="secondary-text"></p>
 
-    <div class="result-line">
-      <span>Bus (5–8 p.):</span>
+    <div class="result-line" style="margin-top:4px;">
+      <span>Bus (5–8 pers.)</span>
       <span id="busTotal">-</span>
     </div>
-    <p id="busBreakdown"></p>
-  </div>
+    <p id="busBreakdown" class="secondary-text"></p>
+  </section>
 
-  <div id="map" class="card"></div>
+  <!-- Kaart -->
+  <section class="card">
+    <div id="map"></div>
+    <p class="secondary-text" style="margin-top:6px;">
+      De route op de kaart komt overeen met de berekende afstand en tijd.
+    </p>
+  </section>
 
 </div>
 
 <script>
-// TARIEVEN
-const TAXI_START = 3.60;
-const TAXI_PER_KM = 2.65;
-const TAXI_PER_MIN = 0.44;
+  // ==== TARIEVEN ====
+  const TAXI_START = 3.60;
+  const TAXI_PER_KM = 2.65;
+  const TAXI_PER_MIN = 0.44;
 
-const BUS_START = 7.33;
-const BUS_PER_KM = 3.34;
-const BUS_PER_MIN = 0.49;
+  const BUS_START = 7.33;
+  const BUS_PER_KM = 3.34;
+  const BUS_PER_MIN = 0.49;
 
-let map;
-let directionsService;
-let directionsRenderer;
+  let map;
+  let directionsService;
+  let directionsRenderer;
+  let autocompleteStart;
+  let autocompleteEnd;
 
-function euro(value) {
-  return "€ " + value.toFixed(2).replace(".", ",");
-}
+  // hier onthouden we de geselecteerde places
+  let startPlace = null;
+  let endPlace = null;
 
-function initMap() {
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 52.0, lng: 4.2 },
-    zoom: 12,
-  });
+  // true = gebruik GPS als startpunt, false = gebruik startadres
+  let useGPSStart = false;
 
-  directionsService = new google.maps.DirectionsService();
-  directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
-}
-
-function useGPSForStart() {
-  const startInput = document.getElementById("startAddress");
-  const status = document.getElementById("status");
-
-  status.textContent = "GPS ophalen...";
-
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      const geocoder = new google.maps.Geocoder();
-      const latlng = { lat, lng };
-
-      geocoder.geocode({ location: latlng }, (results, statusCode) => {
-        if (statusCode === "OK" && results[0]) {
-          startInput.value = results[0].formatted_address;
-          status.textContent = "GPS startadres ingesteld ✔";
-        } else {
-          status.textContent = "Kon GPS adres niet vinden.";
-        }
-      });
-    },
-    (err) => {
-      status.textContent = "GPS fout: " + err.message;
-    }
-  );
-}
-
-async function calculateRoute() {
-  const start = document.getElementById("startAddress").value.trim();
-  const end = document.getElementById("endAddress").value.trim();
-  const status = document.getElementById("status");
-  const error = document.getElementById("error");
-
-  if (!start || !end) {
-    error.textContent = "Vul zowel begin- als eindadres in.";
-    return;
+  function euro(v) {
+    return "€ " + v.toFixed(2).replace(".", ",");
   }
 
-  error.textContent = "";
-  status.textContent = "Route berekenen...";
+  function initAutocomplete() {
+    const startInput = document.getElementById("startAddress");
+    const endInput = document.getElementById("endAddress");
 
-  directionsService.route(
-    {
-      origin: start,
-      destination: end,
-      travelMode: google.maps.TravelMode.DRIVING,
-    },
-    (result, statusRes) => {
-      if (statusRes !== "OK") {
-        error.textContent = "Kon route niet berekenen: " + statusRes;
+    autocompleteStart = new google.maps.places.Autocomplete(startInput, {
+      fields: ["formatted_address", "geometry"],
+      types: ["geocode"]
+    });
+
+    autocompleteEnd = new google.maps.places.Autocomplete(endInput, {
+      fields: ["formatted_address", "geometry"],
+      types: ["geocode"]
+    });
+
+    autocompleteStart.addListener("place_changed", () => {
+      startPlace = autocompleteStart.getPlace();
+      useGPSStart = false;
+      document.getElementById("startInfo").textContent = "Startpunt: handmatig adres (gekozen uit lijst).";
+    });
+
+    autocompleteEnd.addListener("place_changed", () => {
+      endPlace = autocompleteEnd.getPlace();
+    });
+
+    // Als gebruiker zelf typt, ook handmatige modus
+    startInput.addEventListener("input", () => {
+      useGPSStart = false;
+      startPlace = null; // nieuwe tekst → oude place niet meer relevant
+      document.getElementById("startInfo").textContent = "Startpunt: handmatig adres.";
+    });
+  }
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: { lat: 52.0, lng: 4.2 },
+      zoom: 12,
+      disableDefaultUI: true,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#0b1120" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#0b1120" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
+        { featureType: "road", elementType: "geometry", stylers: [{ color: "#1f2937" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#020617" }] },
+        { featureType: "poi", elementType: "labels.icon", stylers: [{ visibility: "off" }] }
+      ]
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+      map,
+      suppressMarkers: false
+    });
+
+    initAutocomplete();
+  }
+
+  async function calculateRoute() {
+    const startInput = document.getElementById("startAddress");
+    const endInput = document.getElementById("endAddress");
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+
+    const distanceTextEl = document.getElementById("distanceText");
+    const durationTextEl = document.getElementById("durationText");
+    const taxiTotalEl = document.getElementById("taxiTotal");
+    const busTotalEl = document.getElementById("busTotal");
+    const taxiBreakdownEl = document.getElementById("taxiBreakdown");
+    const busBreakdownEl = document.getElementById("busBreakdown");
+
+    const startAddress = startInput.value.trim();
+    const endAddress = endInput.value.trim();
+
+    if (!endAddress) {
+      errorEl.textContent = "Vul een eindadres in (of kies een suggestie).";
+      return;
+    }
+
+    if (!useGPSStart && !startAddress) {
+      errorEl.textContent = "Vul een startadres in of gebruik GPS.";
+      return;
+    }
+
+    errorEl.textContent = "";
+    statusEl.textContent = "Route voorbereiden...";
+
+    // ORIGIN bepalen
+    let origin;
+
+    if (useGPSStart) {
+      statusEl.textContent = "GPS ophalen...";
+      let pos;
+      try {
+        pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
+        });
+      } catch (e) {
+        errorEl.textContent = "GPS fout: " + e.message;
+        statusEl.textContent = "";
         return;
       }
-
-      directionsRenderer.setDirections(result);
-      const leg = result.routes[0].legs[0];
-
-      const km = leg.distance.value / 1000;
-      const min = leg.duration.value / 60;
-
-      document.getElementById("distanceText").textContent = km.toFixed(2) + " km";
-      document.getElementById("durationText").textContent = min.toFixed(1) + " min";
-
-      const taxi = TAXI_START + km * TAXI_PER_KM + min * TAXI_PER_MIN;
-      const bus  = BUS_START + km * BUS_PER_KM + min * BUS_PER_MIN;
-
-      document.getElementById("taxiTotal").textContent = euro(taxi);
-      document.getElementById("busTotal").textContent  = euro(bus);
-
-      document.getElementById("taxiBreakdown").textContent =
-        `Start ${euro(TAXI_START)}, Afstand ${euro(km*TAXI_PER_KM)}, Tijd ${euro(min*TAXI_PER_MIN)}`;
-
-      document.getElementById("busBreakdown").textContent =
-        `Start ${euro(BUS_START)}, Afstand ${euro(km*BUS_PER_KM)}, Tijd ${euro(min*BUS_PER_MIN)}`;
-
-      status.textContent = "Klaar! ✔";
+      origin = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+    } else {
+      if (startPlace && startPlace.geometry && startPlace.geometry.location) {
+        origin = startPlace.geometry.location;
+      } else {
+        origin = startAddress; // tekstadres → Google mag geocoden
+      }
     }
-  );
-}
 
-// EVENT LISTENERS
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("gpsBtn").onclick = useGPSForStart;
-  document.getElementById("calcBtn").onclick = calculateRoute;
-});
+    // DESTINATION bepalen
+    let destination;
+    if (endPlace && endPlace.geometry && endPlace.geometry.location) {
+      destination = endPlace.geometry.location;
+    } else {
+      destination = endAddress;
+    }
+
+    statusEl.textContent = "Route berekenen...";
+
+    directionsService.route(
+      {
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING
+      },
+      (result, status) => {
+        if (status !== "OK") {
+          errorEl.textContent = "Kan route niet berekenen: " + status;
+          statusEl.textContent = "";
+          return;
+        }
+
+        directionsRenderer.setDirections(result);
+
+        const leg = result.routes[0].legs[0];
+        const km = leg.distance.value / 1000;
+        const min = leg.duration.value / 60;
+
+        distanceTextEl.textContent = km.toFixed(2) + " km";
+        durationTextEl.textContent = min.toFixed(1) + " min";
+
+        const taxi = TAXI_START + km * TAXI_PER_KM + min * TAXI_PER_MIN;
+        const bus  = BUS_START  + km * BUS_PER_KM  + min * BUS_PER_MIN;
+
+        taxiTotalEl.textContent = euro(taxi);
+        busTotalEl.textContent  = euro(bus);
+
+        taxiBreakdownEl.textContent =
+          `Start ${euro(TAXI_START)} · afstand ${euro(km*TAXI_PER_KM)} · tijd ${euro(min*TAXI_PER_MIN)}`;
+
+        busBreakdownEl.textContent =
+          `Start ${euro(BUS_START)} · afstand ${euro(km*BUS_PER_KM)} · tijd ${euro(min*BUS_PER_MIN)}`;
+
+        statusEl.textContent = "Klaar ✅";
+      }
+    );
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("calcBtn").addEventListener("click", calculateRoute);
+
+    const useGpsBtn = document.getElementById("useGpsBtn");
+    const startInfo = document.getElementById("startInfo");
+
+    useGpsBtn.addEventListener("click", () => {
+      useGPSStart = true;
+      startPlace = null; // GPS heeft voorrang
+      document.getElementById("startAddress").value = "";
+      startInfo.textContent = "Startpunt: huidige GPS locatie.";
+    });
+
+    // PWA service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(console.error);
+    }
+  });
 </script>
 
-<!-- GOOGLE MAPS API (VUL HIER JOUW KEY IN!) -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyARifklpb4qUvHMEPoq_4k2DcPrcVZ9tCU&callback=initMap"></script>
-
+<!-- GOOGLE MAPS + PLACES -->
+<script async
+        defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyARifklpb4qUvHMEPoq_4k2DcPrcVZ9tCU&libraries=places&callback=initMap">
+</script>
 </body>
 </html>
