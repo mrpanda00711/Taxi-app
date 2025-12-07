@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Taxi & Bus Calculator (Google Maps)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    .app { max-width: 480px; margin: 0 auto; padding: 16px; }
+    .card {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #111827;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .small-btn {
+      background: #e5e7eb;
+      color: #111;
+      font-size: 0.9rem;
+    }
+    #map {
+      width: 100%;
+      height: 280px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+    .result-line {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+    .error { color: red; }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <h2 style="text-align:center;">Taxi & Bus Calculator</h2>
+
+  <div class="card">
+    <label>Beginadres</label>
+    <input id="startAddress" type="text" placeholder="Bijv. Naaldwijk, De Bruidsbogerd 11">
+    <button class="small-btn" id="gpsBtn">Gebruik GPS als startadres</button>
+
+    <label style="margin-top:10px;">Eindadres</label>
+    <input id="endAddress" type="text" placeholder="Bijv. Poeldijk, Sint Bartholomeusstraat">
+
+    <button id="calcBtn">Bereken automatisch</button>
+    <p id="status"></p>
+    <p id="error" class="error"></p>
+  </div>
+
+  <div class="card">
+    <h3>Resultaten</h3>
+
+    <div class="result-line">
+      <span>Afstand:</span>
+      <span id="distanceText">-</span>
+    </div>
+
+    <div class="result-line">
+      <span>Reistijd:</span>
+      <span id="durationText">-</span>
+    </div>
+
+    <hr>
+
+    <div class="result-line">
+      <span>Taxi (1–4 p.):</span>
+      <span id="taxiTotal">-</span>
+    </div>
+    <p id="taxiBreakdown"></p>
+
+    <div class="result-line">
+      <span>Bus (5–8 p.):</span>
+      <span id="busTotal">-</span>
+    </div>
+    <p id="busBreakdown"></p>
+  </div>
+
+  <div id="map" class="card"></div>
+
+</div>
+
+<script>
+// TARIEVEN
+const TAXI_START = 3.60;
+const TAXI_PER_KM = 2.65;
+const TAXI_PER_MIN = 0.44;
+
+const BUS_START = 7.33;
+const BUS_PER_KM = 3.34;
+const BUS_PER_MIN = 0.49;
+
+let map;
+let directionsService;
+let directionsRenderer;
+
+function euro(value) {
+  return "€ " + value.toFixed(2).replace(".", ",");
+}
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 52.0, lng: 4.2 },
+    zoom: 12,
+  });
+
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
+}
+
+function useGPSForStart() {
+  const startInput = document.getElementById("startAddress");
+  const status = document.getElementById("status");
+
+  status.textContent = "GPS ophalen...";
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      const geocoder = new google.maps.Geocoder();
+      const latlng = { lat, lng };
+
+      geocoder.geocode({ location: latlng }, (results, statusCode) => {
+        if (statusCode === "OK" && results[0]) {
+          startInput.value = results[0].formatted_address;
+          status.textContent = "GPS startadres ingesteld ✔";
+        } else {
+          status.textContent = "Kon GPS adres niet vinden.";
+        }
+      });
+    },
+    (err) => {
+      status.textContent = "GPS fout: " + err.message;
+    }
+  );
+}
+
+async function calculateRoute() {
+  const start = document.getElementById("startAddress").value.trim();
+  const end = document.getElementById("endAddress").value.trim();
+  const status = document.getElementById("status");
+  const error = document.getElementById("error");
+
+  if (!start || !end) {
+    error.textContent = "Vul zowel begin- als eindadres in.";
+    return;
+  }
+
+  error.textContent = "";
+  status.textContent = "Route berekenen...";
+
+  directionsService.route(
+    {
+      origin: start,
+      destination: end,
+      travelMode: google.maps.TravelMode.DRIVING,
+    },
+    (result, statusRes) => {
+      if (statusRes !== "OK") {
+        error.textContent = "Kon route niet berekenen: " + statusRes;
+        return;
+      }
+
+      directionsRenderer.setDirections(result);
+      const leg = result.routes[0].legs[0];
+
+      const km = leg.distance.value / 1000;
+      const min = leg.duration.value / 60;
+
+      document.getElementById("distanceText").textContent = km.toFixed(2) + " km";
+      document.getElementById("durationText").textContent = min.toFixed(1) + " min";
+
+      const taxi = TAXI_START + km * TAXI_PER_KM + min * TAXI_PER_MIN;
+      const bus  = BUS_START + km * BUS_PER_KM + min * BUS_PER_MIN;
+
+      document.getElementById("taxiTotal").textContent = euro(taxi);
+      document.getElementById("busTotal").textContent  = euro(bus);
+
+      document.getElementById("taxiBreakdown").textContent =
+        `Start ${euro(TAXI_START)}, Afstand ${euro(km*TAXI_PER_KM)}, Tijd ${euro(min*TAXI_PER_MIN)}`;
+
+      document.getElementById("busBreakdown").textContent =
+        `Start ${euro(BUS_START)}, Afstand ${euro(km*BUS_PER_KM)}, Tijd ${euro(min*BUS_PER_MIN)}`;
+
+      status.textContent = "Klaar! ✔";
+    }
+  );
+}
+
+// EVENT LISTENERS
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("gpsBtn").onclick = useGPSForStart;
+  document.getElementById("calcBtn").onclick = calculateRoute;
+});
+</script>
+
+<!-- GOOGLE MAPS API (VUL HIER JOUW KEY IN!) -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyARifklpb4qUvHMEPoq_4k2DcPrcVZ9tCU&callback=initMap"></script>
+
+</body>
+</html>
