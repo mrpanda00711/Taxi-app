@@ -31,6 +31,12 @@
       margin-bottom: 16px;
     }
 
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .logo-circle {
       width: 40px;
       height: 40px;
@@ -43,10 +49,6 @@
       font-weight: 800;
       font-size: 1.1rem;
       box-shadow: 0 0 24px rgba(234, 179, 8, 0.6);
-    }
-
-    .app-title {
-      margin-left: 10px;
     }
 
     .app-title h1 {
@@ -71,6 +73,23 @@
       border: 1px solid #1f2937;
       font-size: 0.75rem;
       color: #9ca3af;
+    }
+
+    .settings-btn {
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .settings-btn span {
+      font-size: 1rem;
     }
 
     .card {
@@ -119,6 +138,17 @@
       color: #6b7280;
     }
 
+    input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
     button {
       width: 100%;
       padding: 11px;
@@ -154,6 +184,8 @@
     .btn-row {
       display: flex;
       justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .secondary-text {
@@ -208,9 +240,44 @@
       overflow: hidden;
     }
 
+    .tarief-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .tarief-row label {
+      font-size: 0.7rem;
+      margin-bottom: 2px;
+    }
+
+    .tarief-row small {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .back-btn {
+      width: auto;
+      padding-inline: 12px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
     @media (max-width: 360px) {
       .card { padding: 12px; }
       #map { height: 220px; }
+      .tarief-row {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
@@ -219,106 +286,187 @@
 <div class="app">
 
   <header class="app-header">
-    <div style="display:flex; align-items:center;">
+    <div class="logo-wrap">
       <div class="logo-circle">T</div>
       <div class="app-title">
         <h1>TaxiCalc</h1>
         <p>GPS · start & eindadres</p>
       </div>
     </div>
-    <span class="badge">
-      <span style="width:7px;height:7px;border-radius:999px;background:#22c55e;"></span>
-      Live · Google Maps
-    </span>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <button id="openSettingsBtn" class="settings-btn">
+        <span>⚙</span> Tarieven
+      </button>
+      <span class="badge">
+        <span style="width:7px;height:7px;border-radius:999px;background:#22c55e;"></span>
+        Live · Google Maps
+      </span>
+    </div>
   </header>
 
-  <!-- Invoer -->
-  <section class="card">
-    <label for="startAddress">Startadres</label>
-    <div class="input-group">
-      <span class="input-prefix">A</span>
-      <input
-        id="startAddress"
-        type="text"
-        placeholder="Bijv. De Bruidsbogerd 11, Naaldwijk"
-        autocomplete="off"
-      />
-    </div>
-    <div class="btn-row">
-      <button type="button" id="useGpsBtn" class="btn-ghost">Gebruik GPS als startpunt</button>
-    </div>
-    <p id="startInfo" class="secondary-text">Startpunt: handmatig adres.</p>
+  <!-- PAGINA: HOOFDSCHERM -->
+  <div id="page-main" class="page active">
 
-    <label for="endAddress" style="margin-top:10px;">Eindadres</label>
-    <div class="input-group">
-      <span class="input-prefix">B</span>
-      <input
-        id="endAddress"
-        type="text"
-        placeholder="Bijv. Sint Bartholomeusstraat, Poeldijk"
-        autocomplete="off"
-      />
-    </div>
+    <!-- Invoer -->
+    <section class="card">
+      <label for="startAddress">Startadres</label>
+      <div class="input-group">
+        <span class="input-prefix">A</span>
+        <input
+          id="startAddress"
+          type="text"
+          placeholder="Bijv. De Bruidsbogerd 11, Naaldwijk"
+          autocomplete="off"
+        />
+      </div>
+      <div class="btn-row">
+        <button type="button" id="useGpsBtn" class="btn-ghost">Gebruik GPS als startpunt</button>
+      </div>
+      <p id="startInfo" class="secondary-text">Startpunt: handmatig adres.</p>
 
-    <button id="calcBtn" class="btn-primary">Bereken rit automatisch</button>
-    <p id="status" class="secondary-text"></p>
-    <p id="error" class="error"></p>
-    <p class="secondary-text">
-      Startadres en eindadres kun je handmatig invoeren, of GPS gebruiken als startpunt.
-    </p>
-  </section>
+      <label for="endAddress" style="margin-top:10px;">Eindadres</label>
+      <div class="input-group">
+        <span class="input-prefix">B</span>
+        <input
+          id="endAddress"
+          type="text"
+          placeholder="Bijv. Sint Bartholomeusstraat, Poeldijk"
+          autocomplete="off"
+        />
+      </div>
 
-  <!-- Resultaten -->
-  <section class="card">
-    <div class="results-header">
-      <h3>Resultaten</h3>
-      <span class="label-pill">Live berekend</span>
-    </div>
+      <button id="calcBtn" class="btn-primary">Bereken rit automatisch</button>
+      <p id="status" class="secondary-text"></p>
+      <p id="error" class="error"></p>
+      <p class="secondary-text">
+        Startadres en eindadres kun je handmatig invoeren, of GPS gebruiken als startpunt.
+      </p>
+    </section>
 
-    <div class="result-line">
-      <span>Afstand</span>
-      <span id="distanceText">-</span>
-    </div>
+    <!-- Resultaten -->
+    <section class="card">
+      <div class="results-header">
+        <h3>Resultaten</h3>
+        <span class="label-pill">Live berekend</span>
+      </div>
 
-    <div class="result-line">
-      <span>Reistijd</span>
-      <span id="durationText">-</span>
-    </div>
+      <div class="result-line">
+        <span>Afstand</span>
+        <span id="distanceText">-</span>
+      </div>
 
-    <hr>
+      <div class="result-line">
+        <span>Reistijd</span>
+        <span id="durationText">-</span>
+      </div>
 
-    <div class="result-line" style="margin-top:6px;">
-      <span>Taxi (1–4 pers.)</span>
-      <span id="taxiTotal">-</span>
-    </div>
-    <p id="taxiBreakdown" class="secondary-text"></p>
+      <hr>
 
-    <div class="result-line" style="margin-top:4px;">
-      <span>Bus (5–8 pers.)</span>
-      <span id="busTotal">-</span>
-    </div>
-    <p id="busBreakdown" class="secondary-text"></p>
-  </section>
+      <div class="result-line" style="margin-top:6px;">
+        <span>Taxi (1–4 pers.)</span>
+        <span id="taxiTotal">-</span>
+      </div>
+      <p id="taxiBreakdown" class="secondary-text"></p>
 
-  <!-- Kaart -->
-  <section class="card">
-    <div id="map"></div>
-    <p class="secondary-text" style="margin-top:6px;">
-      De route op de kaart komt overeen met de berekende afstand en tijd.
-    </p>
-  </section>
+      <div class="result-line" style="margin-top:4px;">
+        <span>Bus (5–8 pers.)</span>
+        <span id="busTotal">-</span>
+      </div>
+      <p id="busBreakdown" class="secondary-text"></p>
+    </section>
+
+    <!-- Kaart -->
+    <section class="card">
+      <div id="map"></div>
+      <p class="secondary-text" style="margin-top:6px;">
+        De route op de kaart komt overeen met de berekende afstand en tijd.
+      </p>
+    </section>
+
+  </div>
+
+  <!-- PAGINA: TARIeVEN -->
+  <div id="page-settings" class="page">
+
+    <button id="backToMainBtn" class="btn-ghost back-btn">← Terug naar rit</button>
+
+    <section class="card">
+      <div class="results-header">
+        <h3>Tarieven</h3>
+        <span class="label-pill" id="tariefStatus">Standaard</span>
+      </div>
+
+      <p class="secondary-text" style="margin-bottom:6px;">
+        Pas hier je taxi- en bustarieven aan. Ze worden lokaal opgeslagen op dit toestel.
+      </p>
+
+      <div class="tarief-row">
+        <div>
+          <label for="taxiStart">Taxi start</label>
+          <input id="taxiStart" type="number" step="0.01">
+          <small>€ per rit</small>
+        </div>
+        <div>
+          <label for="taxiKm">Taxi / km</label>
+          <input id="taxiKm" type="number" step="0.01">
+          <small>€ per km</small>
+        </div>
+        <div>
+          <label for="taxiMin">Taxi / min</label>
+          <input id="taxiMin" type="number" step="0.01">
+          <small>€ per min</small>
+        </div>
+      </div>
+
+      <div class="tarief-row">
+        <div>
+          <label for="busStart">Bus start</label>
+          <input id="busStart" type="number" step="0.01">
+          <small>€ per rit</small>
+        </div>
+        <div>
+          <label for="busKm">Bus / km</label>
+          <input id="busKm" type="number" step="0.01">
+          <small>€ per km</small>
+        </div>
+        <div>
+          <label for="busMin">Bus / min</label>
+          <input id="busMin" type="number" step="0.01">
+          <small>€ per min</small>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="resetTariffsBtn" class="btn-ghost">Reset standaard</button>
+        <button type="button" id="saveTariffsBtn" class="btn-primary" style="width:auto;padding-inline:14px;">
+          Tarieven opslaan
+        </button>
+      </div>
+      <p id="tariefError" class="error"></p>
+    </section>
+
+  </div>
 
 </div>
 
 <script>
-  // ==== TARIEVEN ====
-  const TAXI_START = 3.60;
-  const TAXI_PER_KM = 2.65;
-  const TAXI_PER_MIN = 0.44;
+  // ==== TARIEVEN (worden overschreven vanuit settings / localStorage) ====
+  let TAXI_START = 3.60;
+  let TAXI_PER_KM = 2.65;
+  let TAXI_PER_MIN = 0.44;
 
-  const BUS_START = 7.33;
-  const BUS_PER_KM = 3.34;
-  const BUS_PER_MIN = 0.49;
+  let BUS_START = 7.33;
+  let BUS_PER_KM = 3.34;
+  let BUS_PER_MIN = 0.49;
+
+  const DEFAULT_TARIFFS = {
+    taxiStart: 3.60,
+    taxiKm: 2.65,
+    taxiMin: 0.44,
+    busStart: 7.33,
+    busKm: 3.34,
+    busMin: 0.49,
+  };
 
   let map;
   let directionsService;
@@ -335,6 +483,85 @@
 
   function euro(v) {
     return "€ " + v.toFixed(2).replace(".", ",");
+  }
+
+  function applyTariffs(t) {
+    TAXI_START = t.taxiStart;
+    TAXI_PER_KM = t.taxiKm;
+    TAXI_PER_MIN = t.taxiMin;
+    BUS_START = t.busStart;
+    BUS_PER_KM = t.busKm;
+    BUS_PER_MIN = t.busMin;
+  }
+
+  function loadTariffs() {
+    const saved = localStorage.getItem("taxiCalcTariffs");
+    const fields = {
+      taxiStart: document.getElementById("taxiStart"),
+      taxiKm: document.getElementById("taxiKm"),
+      taxiMin: document.getElementById("taxiMin"),
+      busStart: document.getElementById("busStart"),
+      busKm: document.getElementById("busKm"),
+      busMin: document.getElementById("busMin"),
+    };
+    const statusLabel = document.getElementById("tariefStatus");
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        applyTariffs(parsed);
+        fields.taxiStart.value = parsed.taxiStart;
+        fields.taxiKm.value = parsed.taxiKm;
+        fields.taxiMin.value = parsed.taxiMin;
+        fields.busStart.value = parsed.busStart;
+        fields.busKm.value = parsed.busKm;
+        fields.busMin.value = parsed.busMin;
+        statusLabel.textContent = "Aangepast";
+        return;
+      } catch (e) {
+        console.warn("Kon opgeslagen tarieven niet lezen", e);
+      }
+    }
+
+    // geen geldige opslag → defaults
+    applyTariffs(DEFAULT_TARIFFS);
+    fields.taxiStart.value = DEFAULT_TARIFFS.taxiStart;
+    fields.taxiKm.value = DEFAULT_TARIFFS.taxiKm;
+    fields.taxiMin.value = DEFAULT_TARIFFS.taxiMin;
+    fields.busStart.value = DEFAULT_TARIFFS.busStart;
+    fields.busKm.value = DEFAULT_TARIFFS.busKm;
+    fields.busMin.value = DEFAULT_TARIFFS.busMin;
+    statusLabel.textContent = "Standaard";
+  }
+
+  function saveTariffs() {
+    const errEl = document.getElementById("tariefError");
+    const statusLabel = document.getElementById("tariefStatus");
+
+    const t = {
+      taxiStart: parseFloat(document.getElementById("taxiStart").value.replace(",", ".")),
+      taxiKm: parseFloat(document.getElementById("taxiKm").value.replace(",", ".")),
+      taxiMin: parseFloat(document.getElementById("taxiMin").value.replace(",", ".")),
+      busStart: parseFloat(document.getElementById("busStart").value.replace(",", ".")),
+      busKm: parseFloat(document.getElementById("busKm").value.replace(",", ".")),
+      busMin: parseFloat(document.getElementById("busMin").value.replace(",", ".")),
+    };
+
+    if (Object.values(t).some(v => isNaN(v) || v < 0)) {
+      errEl.textContent = "Controleer de ingevulde tarieven (geen negatieve of lege waarden).";
+      return;
+    }
+
+    errEl.textContent = "";
+    applyTariffs(t);
+    localStorage.setItem("taxiCalcTariffs", JSON.stringify(t));
+    statusLabel.textContent = "Aangepast";
+  }
+
+  function resetTariffs() {
+    localStorage.removeItem("taxiCalcTariffs");
+    loadTariffs();
+    document.getElementById("tariefError").textContent = "";
   }
 
   function initAutocomplete() {
@@ -354,7 +581,8 @@
     autocompleteStart.addListener("place_changed", () => {
       startPlace = autocompleteStart.getPlace();
       useGPSStart = false;
-      document.getElementById("startInfo").textContent = "Startpunt: handmatig adres (gekozen uit lijst).";
+      document.getElementById("startInfo").textContent =
+        "Startpunt: handmatig adres (gekozen uit lijst).";
     });
 
     autocompleteEnd.addListener("place_changed", () => {
@@ -370,6 +598,8 @@
   }
 
   function initMap() {
+    loadTariffs();
+
     map = new google.maps.Map(document.getElementById("map"), {
       center: { lat: 52.0, lng: 4.2 },
       zoom: 12,
@@ -495,11 +725,21 @@
     );
   }
 
+  function showPage(id) {
+    document.getElementById("page-main").classList.remove("active");
+    document.getElementById("page-settings").classList.remove("active");
+    document.getElementById(id).classList.add("active");
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("calcBtn").addEventListener("click", calculateRoute);
 
     const useGpsBtn = document.getElementById("useGpsBtn");
     const startInfo = document.getElementById("startInfo");
+    const saveTariffsBtn = document.getElementById("saveTariffsBtn");
+    const resetTariffsBtn = document.getElementById("resetTariffsBtn");
+    const openSettingsBtn = document.getElementById("openSettingsBtn");
+    const backToMainBtn = document.getElementById("backToMainBtn");
 
     useGpsBtn.addEventListener("click", () => {
       useGPSStart = true;
@@ -507,6 +747,12 @@
       document.getElementById("startAddress").value = "";
       startInfo.textContent = "Startpunt: huidige GPS locatie.";
     });
+
+    saveTariffsBtn.addEventListener("click", saveTariffs);
+    resetTariffsBtn.addEventListener("click", resetTariffs);
+
+    openSettingsBtn.addEventListener("click", () => showPage("page-settings"));
+    backToMainBtn.addEventListener("click", () => showPage("page-main"));
 
     // PWA service worker
     if ("serviceWorker" in navigator) {
